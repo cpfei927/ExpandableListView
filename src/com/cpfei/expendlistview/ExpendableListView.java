@@ -2,9 +2,11 @@ package com.cpfei.expendlistview;
 
 
 import android.app.Activity;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
@@ -18,24 +20,37 @@ public class ExpendableListView extends Activity implements OnGroupClickListener
 
 	private String[] generalsTypes;
 	private String[][] generals;
-
+	ExpandableListAdapter adapter;
+	ExpandableListView expandableListView;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				updateView();
+			}
+		});
+
 		initData();
 		
-		ExpandableListView expandableListView = (ExpandableListView)findViewById(R.id.list);
+		expandableListView = (ExpandableListView)findViewById(R.id.list);
 		expandableListView.setGroupIndicator(null);
-		ExpandableListAdapter adapter = new ExpandableListAdapter();
+		adapter = new ExpandableListAdapter();
 		
 		expandableListView.setAdapter(adapter);
 		
 		expandableListView.setOnChildClickListener(this);
 		
 		expandableListView.setOnGroupClickListener(this);
-		
-//		new ListUtils(this).setListViewHeightBasedOnChildren(expandableListView, 100);
+
+		for (int i = 0; i < adapter.getGroupCount(); i++) {
+			expandableListView.expandGroup(i);
+		}
+
+
 	}
 
 	private void initData() {
@@ -46,6 +61,35 @@ public class ExpendableListView extends Activity implements OnGroupClickListener
 				{ "吕蒙", "陆逊", "孙权", "周瑜", "孙尚香" } };
 
 	}
+
+	protected void updateView() {
+		int firstVisiblePosition = expandableListView.getFirstVisiblePosition();
+		int lastVisiblePosition = expandableListView.getLastVisiblePosition();
+
+		int flatListPosition = expandableListView.getFlatListPosition(5);
+
+		long expandableListPosition = expandableListView.getExpandableListPosition(flatListPosition);
+
+
+		Log.i("Tag", "firstVisiblePosition == " + firstVisiblePosition);
+		Log.i("Tag", "lastVisiblePosition == " + lastVisiblePosition);
+		Log.i("Tag", "flatListPosition == " + flatListPosition);
+		Log.i("Tag", "expandableListPosition == " + expandableListPosition);
+
+
+
+		View childAt = expandableListView.getChildAt(4);
+
+
+
+
+		TextView viewById = (TextView) childAt.findViewById(R.id.childTxtv);
+
+		Log.i("Tag", viewById.getText().toString());
+		viewById.setText("改变过后的数据");
+
+	}
+
 
 	class ExpandableListAdapter extends BaseExpandableListAdapter {
 
@@ -88,6 +132,8 @@ public class ExpendableListView extends Activity implements OnGroupClickListener
 		public View getGroupView(int groupPosition, boolean isExpanded,
 				View convertView, ViewGroup parent) {
 
+			Log.i("Tag", "getGroupView = groupPosition == " + groupPosition);
+
 			TextView txtv = new TextView(ExpendableListView.this);
 
 			txtv.setPadding(30, 20, 0, 20);
@@ -102,12 +148,18 @@ public class ExpendableListView extends Activity implements OnGroupClickListener
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
+			Log.i("Tag", "getChildView = groupPosition == " + groupPosition + " , childPosition == " + childPosition);
 
-			TextView txtv = new TextView(ExpendableListView.this);
+			convertView = LayoutInflater.from(ExpendableListView.this).inflate(R.layout.item_child, null);
 
-			txtv.setPadding(40, 20, 0, 20);
+			TextView txtv = (TextView) convertView.findViewById(R.id.childTxtv);
 
-			txtv.setBackgroundColor(Color.parseColor("#ffffff"));
+
+//			TextView txtv = new TextView(ExpendableListView.this);
+//
+//			txtv.setPadding(40, 20, 0, 20);
+//
+//			txtv.setBackgroundColor(Color.parseColor("#ffffff"));
 
 			txtv.setText(generals[groupPosition][childPosition]);
 
@@ -135,7 +187,7 @@ public class ExpendableListView extends Activity implements OnGroupClickListener
 	public boolean onGroupClick(ExpandableListView parent, View v,
 			int groupPosition, long id) {
 		Log.i("Tag", "groupPosition = " + groupPosition);
-		return false;
+		return true;
 	}
 
 }
